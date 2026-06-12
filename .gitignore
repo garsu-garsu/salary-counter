@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output / artifacts
+dist/
+*.ait
+.granite/
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.local
+
+# env
+.env
+.env.*
