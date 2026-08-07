@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, ProgressBar, TextButton } from "@toss/tds-mobile";
 import { adaptive, colors } from "@toss/tds-colors";
-import { generateHapticFeedback, share } from "@apps-in-toss/web-framework";
+import { generateHapticFeedback, getTossShareLink, share } from "@apps-in-toss/web-framework";
 import type { Profile } from "../lib/types";
 import {
   dailyPayWon,
@@ -9,14 +9,21 @@ import {
   formatDurationShort,
   formatWon,
   getDayStatus,
+  monthEarnedWon,
   paydayDday,
   weekEarnedWon,
+  wonPerHour,
   wonPerSecond,
 } from "../lib/salary";
 import { nextHoliday } from "../lib/holidays";
 import { BannerAdSlot } from "../components/BannerAdSlot";
 import { DetailStatsUnlock } from "../components/DetailStatsUnlock";
 import { earnedBand, track } from "../lib/analytics";
+
+// granite.config.ts 의 appName / brand.icon 과 맞춰야 해요.
+const SHARE_DEEP_LINK = "intoss://salary-counter";
+const SHARE_OG_IMAGE =
+  "https://static.toss.im/appsintoss/13203/d6c50373-86a8-424b-b608-a5576075976b.png";
 
 const PHASE_TITLE: Record<string, string> = {
   off: "오늘은 쉬는 날 🏖️",
@@ -40,6 +47,7 @@ export function MainPage({ profile, onEdit }: Props) {
 
   const status = useMemo(() => getDayStatus(now, profile), [now, profile]);
   const weekTotal = useMemo(() => weekEarnedWon(now, profile), [now, profile]);
+  const monthTotal = useMemo(() => monthEarnedWon(now, profile), [now, profile]);
   const payday = useMemo(() => paydayDday(now, profile.payday), [now, profile.payday]);
   const holiday = useMemo(() => nextHoliday(now), [now]);
   const daily = dailyPayWon(profile);
@@ -65,19 +73,21 @@ export function MainPage({ profile, onEdit }: Props) {
     } catch {
       // 토스 앱 밖에서는 햅틱 미지원
     }
+    // 시급이 그대로 역산되지 않게 달성률(%)은 빼고 보내요.
     const lines =
       status.phase === "working"
         ? [
-            `💰 오늘 번 돈 ${formatWon(status.earned)}`,
-            `📊 퇴근 게이지 ${percent}% 충전 중`,
-            `⏳ 퇴근까지 ${formatDurationShort(status.remainingSeconds)}`,
+            `💰 오늘 벌써 ${formatWon(status.earned)} 벌었어요`,
+            `⏳ 퇴근까지 ${formatDurationShort(status.remainingSeconds)} 남았네요`,
           ]
         : status.phase === "done"
-          ? [`💰 오늘 번 돈 ${formatWon(status.earned)}`, `📊 퇴근 게이지 100% 충전 완료 🎉`]
-          : [`🏖️ 오늘은 적립 쉬는 날`, `💸 다음 월급일까지 D-${payday}`];
-    const message = [...lines, "", "월급카운터에서 나도 확인해보기 👀"].join("\n");
+          ? [`💰 오늘치 다 벌었어요 ${formatWon(status.earned)} 🎉`]
+          : [`🏖️ 오늘은 적립 쉬는 날`, `💸 다음 월급날까지 D-${payday}`];
+    const message = [...lines, "", "내 시급이랑 오늘 번 돈은 월급 카운터에서 👀"].join("\n");
     try {
-      await share({ message });
+      // 받은 사람이 바로 앱으로 들어올 수 있게 토스 공유 링크를 붙여요. (실패하면 문구만 공유)
+      const link = await getTossShareLink(SHARE_DEEP_LINK, SHARE_OG_IMAGE).catch(() => "");
+      await share({ message: link ? `${message}\n${link}` : message });
       track.shareComplete(status.phase, "toss");
     } catch {
       try {
@@ -200,9 +210,11 @@ export function MainPage({ profile, onEdit }: Props) {
         }}
       >
         <StatCard label="이번 주 누적" value={formatWon(weekTotal)} />
+        <StatCard label="이번 달 누적" value={formatWon(monthTotal)} />
+        <StatCard label="내 시급" value={formatWon(wonPerHour(profile))} />
         <StatCard label="하루 적립액" value={formatWon(daily)} />
         <StatCard
-          label="월급일까지"
+          label="월급날까지"
           value={payday === 0 ? "오늘! 🤑" : `D-${payday}`}
           caption={profile.payday === "last" ? "매월 말일" : `매월 ${profile.payday}일`}
         />
@@ -232,9 +244,11 @@ export function MainPage({ profile, onEdit }: Props) {
           lineHeight: 1.5,
         }}
       >
-        표시되는 금액은 실제 급여가 아닌 재미용 단순 환산 수치예요.
+        {profile.salaryType === "net"
+          ? "직접 넣은 월 실수령액을 근무 시간으로 나눈 환산 수치예요."
+          : "직접 넣은 세전 금액을 근무 시간으로 나눈 환산 수치예요."}
         <br />
-        세전·세후 등 실제 지급액과는 달라요.
+        실제 급여·세금 계산 결과가 아니고, 야근·수당도 반영되지 않아요.
       </p>
     </div>
   );

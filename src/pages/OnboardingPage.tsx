@@ -9,7 +9,7 @@ import {
 import { adaptive } from "@toss/tds-colors";
 import type { Profile } from "../lib/types";
 import { DEFAULT_PROFILE } from "../lib/types";
-import { parseTimeToSeconds, workSecondsPerDay } from "../lib/salary";
+import { formatWon, parseTimeToSeconds, wonPerHour, workSecondsPerDay } from "../lib/salary";
 import { amountBand, paydayType, track } from "../lib/analytics";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -29,6 +29,24 @@ const PAYDAY_OPTIONS: { name: string; value: string }[] = [
   })),
   { name: "말일", value: "last" },
 ];
+
+const AMOUNT_LABEL: Record<Profile["salaryType"], string> = {
+  annual: "연봉 (세전)",
+  monthly: "월급 (세전)",
+  net: "월 실수령액 (세후)",
+};
+
+const AMOUNT_PLACEHOLDER: Record<Profile["salaryType"], string> = {
+  annual: "예: 4000",
+  monthly: "예: 330",
+  net: "예: 290",
+};
+
+const AMOUNT_HELP: Record<Profile["salaryType"], string> = {
+  annual: "세전 연봉을 넣으면 세금을 떼기 전 금액으로 계산해요",
+  monthly: "세전 월급을 넣으면 세금을 떼기 전 금액으로 계산해요",
+  net: "통장에 실제로 들어오는 금액을 넣으면 가장 와닿아요",
+};
 
 type SheetTarget = "workStart" | "workEnd" | "payday" | null;
 
@@ -69,6 +87,12 @@ export function OnboardingPage({ initial, onComplete }: Props) {
     return salaryType === "annual" ? (amount * 10000) / 12 : amount * 10000;
   }, [amount, salaryType]);
 
+  // 금액을 넣는 즉시 내 시급이 얼마인지 바로 보여줘요.
+  const perHour = useMemo(() => {
+    if (!valid) return 0;
+    return wonPerHour({ salaryType, amount, workStart, workEnd, workDays, payday });
+  }, [valid, salaryType, amount, workStart, workEnd, workDays, payday]);
+
   const toggleDay = (day: number) => {
     setWorkDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort(),
@@ -99,7 +123,7 @@ export function OnboardingPage({ initial, onComplete }: Props) {
         }
         subtitleBottom={
           <Top.SubtitleParagraph size={15}>
-            재미로 보는 '오늘 번 돈' 환산기예요
+            연봉·월급·실수령액 중 아는 걸로 하나만 넣어주세요
           </Top.SubtitleParagraph>
         }
       />
@@ -115,20 +139,21 @@ export function OnboardingPage({ initial, onComplete }: Props) {
         >
           <SegmentedControl.Item value="annual">연봉</SegmentedControl.Item>
           <SegmentedControl.Item value="monthly">월급</SegmentedControl.Item>
+          <SegmentedControl.Item value="net">실수령액</SegmentedControl.Item>
         </SegmentedControl>
 
         <TextField
           variant="line"
-          label={salaryType === "annual" ? "연봉 (세전)" : "월급 (세전)"}
+          label={AMOUNT_LABEL[salaryType]}
           labelOption="sustain"
-          placeholder={salaryType === "annual" ? "예: 4000" : "예: 330"}
+          placeholder={AMOUNT_PLACEHOLDER[salaryType]}
           suffix="만원"
           value={amountText}
           onChange={(e) => setAmountText(e.target.value.replace(/[^0-9]/g, "").slice(0, 7))}
           help={
-            monthlyWon > 0
-              ? `월 환산 약 ${Math.floor(monthlyWon).toLocaleString("ko-KR")}원 기준으로 계산해요`
-              : "실제 급여가 아닌 단순 환산용이라 대략적인 금액이면 충분해요"
+            perHour > 0
+              ? `월 ${Math.floor(monthlyWon).toLocaleString("ko-KR")}원 · 내 시급은 약 ${formatWon(perHour)}이에요`
+              : AMOUNT_HELP[salaryType]
           }
           paddingTop={24}
         />
@@ -206,8 +231,10 @@ export function OnboardingPage({ initial, onComplete }: Props) {
         />
 
         <p style={{ marginTop: 32, fontSize: 12, color: adaptive.grey500, lineHeight: 1.5 }}>
-          월급카운터의 모든 금액은 실제 급여가 아닌 재미용 단순 환산 수치예요. 세금·수당 등은
-          반영되지 않아요. 입력한 정보는 내 기기에만 저장돼요.
+          월급카운터는 넣어주신 금액을 근무 시간으로 나눠 보여주는 환산기예요. 실제 급여나
+          세금을 대신 계산해 주지는 않아요. 세전 연봉·월급을 넣으면 세금을 떼기 전 금액으로,
+          실수령액을 넣으면 통장에 들어오는 금액 기준으로 보여줘요. 야근·수당은 반영되지 않고,
+          입력한 정보는 내 기기에만 저장돼요.
         </p>
       </div>
 

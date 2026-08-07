@@ -13,7 +13,7 @@ export function workSecondsPerDay(profile: Profile): number {
   return parseTimeToSeconds(profile.workEnd) - parseTimeToSeconds(profile.workStart);
 }
 
-/** 연봉 환산 (원) */
+/** 연봉 환산 (원) — 월급·월 실수령액은 12를 곱해 1년치로 맞춰요. */
 export function annualSalaryWon(profile: Profile): number {
   const won = profile.amount * 10000;
   return profile.salaryType === "annual" ? won : won * 12;

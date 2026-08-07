@@ -1,80 +1,143 @@
-import { Button, Top } from "@toss/tds-mobile";
-import { adaptive } from "@toss/tds-colors";
+import { useEffect, useState } from "react";
+import { Button, ProgressBar, Top } from "@toss/tds-mobile";
+import { adaptive, colors } from "@toss/tds-colors";
+import type { Profile } from "../lib/types";
+import {
+  formatDurationClock,
+  formatWon,
+  parseTimeToSeconds,
+  wonPerHour,
+  wonPerSecond,
+  workSecondsPerDay,
+} from "../lib/salary";
 
 interface Props {
   onStart: () => void;
 }
 
-const STEPS = [
-  {
-    emoji: "💰",
-    title: "연봉과 근무 시간을 넣어요",
-    body: "연봉(또는 월급)·출퇴근 시각·근무 요일·월급일만 넣으면 끝이에요. 이 기기에만 저장돼요.",
-  },
-  {
-    emoji: "⏱️",
-    title: "지금 이 순간 번 돈이 쌓여요",
-    body: "출근한 순간부터 1초 단위로 올라가요. 퇴근 게이지가 얼마나 찼는지, 퇴근까지 얼마 남았는지도 보여드려요.",
-  },
-  {
-    emoji: "📊",
-    title: "주간·시급·월급일까지 한눈에",
-    body: "광고를 보면 요일별 적립과 시급·분당 환산 같은 자세한 통계를 볼 수 있어요. 다음 월급일과 다가오는 공휴일도 알려드려요.",
-  },
+/** 미리보기용 예시 조건 — 연봉 4,000만원, 9 to 6, 주 5일 */
+const DEMO: Profile = {
+  salaryType: "annual",
+  amount: 4000,
+  workStart: "09:00",
+  workEnd: "18:00",
+  workDays: [1, 2, 3, 4, 5],
+  payday: 25,
+};
+
+const POINTS = [
+  "연봉·월급·실수령액 중 아는 걸로 하나만 넣으면 돼요",
+  "내 시급이랑 오늘 번 돈이 1초 단위로 올라가요",
+  "이번 주·이번 달 누적, 퇴근까지 남은 시간, 월급날 D-day까지",
 ];
 
-/** 첫 실행에 한 번만 보여주는 소개 화면. 연봉 입력 전에 무엇을 하는 앱인지 알려줘요. */
+/**
+ * 첫 실행에 한 번만 보여주는 화면.
+ * 연봉을 묻기 전에 '지금 이 순간 얼마 버는지'를 예시로 먼저 보여줘요.
+ */
 export function IntroPage({ onStart }: Props) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const perSecond = wonPerSecond(DEMO);
+  const workSec = workSecondsPerDay(DEMO);
+  const startSec = parseTimeToSeconds(DEMO.workStart);
+  const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const working =
+    DEMO.workDays.includes(now.getDay()) && nowSec > startSec && nowSec < startSec + workSec;
+  // 밤이나 주말에 열어도 카운터가 멈춰 보이지 않게, 근무 중이 아니면 오후 시간대 기준으로 보여줘요.
+  const elapsed = working ? nowSec - startSec : 6 * 3600 + (nowSec % 3600);
+
   return (
     <div style={{ padding: "0 0 32px" }}>
       <Top
-        title={<Top.TitleParagraph size={26}>월급 카운터</Top.TitleParagraph>}
+        {/* 앱 이름은 토스 상단 바가 이미 보여줘요 — 여기서 또 쓰면 헤더가 겹쳐 보여요. */}
+        title={<Top.TitleParagraph size={26}>오늘 번 돈 세어보기</Top.TitleParagraph>}
         subtitleBottom={
           <Top.SubtitleParagraph size={15}>
-            오늘 지금까지 번 돈, 실시간으로 봐요
+            출근하고 지금까지 번 돈, 실시간으로 세어드려요
           </Top.SubtitleParagraph>
         }
       />
 
       <div style={{ padding: "8px 20px 0" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {STEPS.map((s) => (
-            <div
-              key={s.title}
-              style={{
-                display: "flex",
-                gap: 14,
-                alignItems: "flex-start",
-                background: adaptive.grey50,
-                borderRadius: 16,
-                padding: "16px 18px",
-              }}
-            >
-              <div style={{ fontSize: 28, lineHeight: 1.2 }}>{s.emoji}</div>
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{ fontSize: 15, fontWeight: 800, color: adaptive.grey800 }}
-                >
-                  {s.title}
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    color: adaptive.grey600,
-                    marginTop: 4,
-                  }}
-                >
-                  {s.body}
-                </div>
-              </div>
+        {/* 입력 전에 먼저 보여주는 미리보기 — 실제 메인 화면과 같은 카드예요. */}
+        <div
+          style={{
+            borderRadius: 24,
+            padding: "24px 24px 22px",
+            background: `linear-gradient(135deg, ${colors.blue500}, ${colors.blue700})`,
+            color: "#fff",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, opacity: 0.85 }}>
+            연봉 4,000만원이면 지금 이만큼
+          </p>
+          <p
+            style={{
+              margin: "8px 0 4px",
+              fontSize: 44,
+              fontWeight: 800,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {formatWon(perSecond * elapsed)}
+          </p>
+          <p style={{ margin: "0 0 18px", fontSize: 14, opacity: 0.8 }}>
+            시급 {formatWon(wonPerHour(DEMO))} · 1초마다 {perSecond.toFixed(1)}원씩 적립 중
+          </p>
+
+          <ProgressBar progress={elapsed / workSec} size="bold" color="#fff" animate />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 10,
+              fontSize: 14,
+              fontWeight: 600,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            <span>퇴근 게이지 {Math.floor((elapsed / workSec) * 100)}%</span>
+            <span>퇴근까지 {formatDurationClock(workSec - elapsed)}</span>
+          </div>
+        </div>
+
+        <p
+          style={{
+            margin: "10px 2px 0",
+            fontSize: 12,
+            color: adaptive.grey500,
+          }}
+        >
+          예시 · 9시 출근 6시 퇴근, 주 5일 기준
+        </p>
+
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          {POINTS.map((text) => (
+            <div key={text} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 15, color: adaptive.blue500, fontWeight: 800 }}>·</span>
+              <span style={{ fontSize: 14, lineHeight: 1.6, color: adaptive.grey700 }}>
+                {text}
+              </span>
             </div>
           ))}
         </div>
 
         <div style={{ marginTop: 22 }}>
           <Button size="xlarge" display="full" onClick={onStart}>
-            시작하기
+            내 연봉으로 바꾸기
           </Button>
         </div>
 
@@ -87,7 +150,7 @@ export function IntroPage({ onStart }: Props) {
             lineHeight: 1.6,
           }}
         >
-          세전 기준 단순 환산이에요. 실제 실수령액과는 달라요.
+          실제 급여가 아닌 환산 수치예요. 입력한 정보는 내 기기에만 저장돼요.
         </div>
       </div>
     </div>

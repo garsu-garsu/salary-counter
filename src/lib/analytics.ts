@@ -1,5 +1,6 @@
 import { Analytics } from "@apps-in-toss/web-framework";
 import type { DayPhase } from "./salary";
+import type { Profile } from "./types";
 
 /**
  * 앱인토스 콘솔 "분석 > 이벤트"용 로깅 래퍼.
@@ -20,7 +21,7 @@ function safe(fn: () => Promise<void> | undefined) {
 }
 
 /** 연봉(만원) → 집계용 구간 */
-export function amountBand(amount: number, type: "annual" | "monthly"): string {
+export function amountBand(amount: number, type: Profile["salaryType"]): string {
   const annual = type === "annual" ? amount : amount * 12;
   if (annual < 3000) return "~3000";
   if (annual < 5000) return "3000-5000";
@@ -67,7 +68,7 @@ export const track = {
   },
 
   /** 연봉/월급 토글 변경 */
-  onboardingSalaryType(salaryType: "annual" | "monthly") {
+  onboardingSalaryType(salaryType: Profile["salaryType"]) {
     safe(() =>
       Analytics.click({ log_name: "onboarding_salary_type", salary_type: salaryType }),
     );
@@ -76,7 +77,7 @@ export const track = {
   /** 시작하기·저장하기 완료 (입력 전환의 끝점) */
   onboardingComplete(params: {
     mode: "new" | "edit";
-    salaryType: "annual" | "monthly";
+    salaryType: Profile["salaryType"];
     amountBand: string;
     workHours: number;
     workDaysCount: number;

@@ -1,6 +1,6 @@
 export interface Profile {
-  /** 급여 입력 방식 */
-  salaryType: "annual" | "monthly";
+  /** 급여 입력 방식 — net은 세금·4대보험을 뗀 월 실수령액이에요. */
+  salaryType: "annual" | "monthly" | "net";
   /** 입력 금액 (만원 단위) */
   amount: number;
   /** 출근 시각 "HH:mm" */
