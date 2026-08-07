@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BottomSheet, Button } from "@toss/tds-mobile";
+import { BottomSheet, Button, useToast } from "@toss/tds-mobile";
 import { GoogleAdMob } from "@apps-in-toss/web-framework";
 import type { Profile } from "../lib/types";
 import { DetailStats } from "./DetailStats";
@@ -17,6 +17,7 @@ const REWARDED_AD_GROUP_ID = "ait.v2.live.68c03bab7b874b8e";
  * - 토스 밖(웹/개발)처럼 광고를 지원하지 않는 환경에서는 광고 없이 바로 열어요.
  */
 export function DetailStatsUnlock({ profile }: { profile: Profile }) {
+  const toast = useToast();
   const [unlocked, setUnlocked] = useState(false);
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -66,13 +67,22 @@ export function DetailStatsUnlock({ profile }: { profile: Profile }) {
             setUnlocked(true);
             setOpen(true);
             track.detailStatsView(true);
+          } else {
+            // 아무 반응이 없으면 버튼이 고장 난 것처럼 보여요.
+            toast.openToast("광고를 끝까지 봐야 열려요.");
           }
           preload(); // 다음 시청을 위해 다시 불러와요.
         } else if (event.type === "failedToShow") {
           setPending(false);
+          toast.openToast("광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+          preload();
         }
       },
-      onError: () => setPending(false),
+      onError: () => {
+        setPending(false);
+        toast.openToast("광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+        preload();
+      },
     });
   };
 
