@@ -101,7 +101,8 @@ export function MainPage({ profile, onEdit }: Props) {
   };
 
   return (
-    <div style={{ padding: "16px 20px 40px" }}>
+    // 하단 고정 배너가 면책 문구를 가리지 않게 본문 아래 여백을 넉넉히 둬요.
+    <div style={{ padding: "16px 20px 120px" }}>
       <div
         style={{
           display: "flex",
@@ -233,8 +234,6 @@ export function MainPage({ profile, onEdit }: Props) {
 
       <DetailStatsUnlock profile={profile} />
 
-      <BannerAdSlot phase={status.phase} />
-
       <p
         style={{
           marginTop: 20,
@@ -250,6 +249,25 @@ export function MainPage({ profile, onEdit }: Props) {
         <br />
         실제 급여·세금 계산 결과가 아니고, 야근·수당도 반영되지 않아요.
       </p>
+
+      {/* 배너는 본문 안에 흘려보내지 않고 화면 하단에 고정해요 — 한 화면에 배너는 하나입니다. */}
+      <div
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 10,
+          // 넓은 화면에서 본문은 480px 로 묶여 있어요(App.css). 고정 배너도 같이 묶어줍니다.
+          maxWidth: 480,
+          margin: "0 auto",
+          background: adaptive.background,
+          padding: "0 20px",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        <BannerAdSlot phase={status.phase} />
+      </div>
     </div>
   );
 }
