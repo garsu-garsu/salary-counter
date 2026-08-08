@@ -18,6 +18,7 @@ import {
 import { nextHoliday } from "../lib/holidays";
 import { BannerAdSlot, ImageBannerAdSlot } from "../components/BannerAdSlot";
 import { DetailStatsUnlock } from "../components/DetailStatsUnlock";
+import { NotifyTimePicker } from "../components/NotifyTimePicker";
 import { earnedBand, track } from "../lib/analytics";
 
 // granite.config.ts 의 appName / brand.icon 과 맞춰야 해요.
@@ -233,6 +234,8 @@ export function MainPage({ profile, onEdit }: Props) {
       </div>
 
       <DetailStatsUnlock profile={profile} />
+
+      <NotifyTimePicker profile={profile} />
 
       <p
         style={{
