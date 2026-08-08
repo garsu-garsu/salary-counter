@@ -21,7 +21,7 @@ import { DetailStatsUnlock } from "../components/DetailStatsUnlock";
 import { NotifyTimePicker } from "../components/NotifyTimePicker";
 import { earnedBand, track } from "../lib/analytics";
 
-// granite.config.ts 의 appName / brand.icon 과 맞춰야 해요.
+// apps-in-toss.config.ts 의 appName / brand.icon 과 맞춰야 해요.
 const SHARE_DEEP_LINK = "intoss://salary-counter";
 const SHARE_OG_IMAGE =
   "https://static.toss.im/appsintoss/13203/d6c50373-86a8-424b-b608-a5576075976b.png";
