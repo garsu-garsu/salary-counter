@@ -22,9 +22,18 @@ export function DetailStatsUnlock({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const adSupported =
-    GoogleAdMob.loadAppsInTossAdMob.isSupported() &&
-    GoogleAdMob.showAppsInTossAdMob.isSupported();
+  // isSupported 는 토스 밖에서 예외를 던져요. 감싸지 않으면 이 컴포넌트가 속한
+  // 메인 화면이 통째로 하얗게 죽어요 (에러 경계가 없어요).
+  const adSupported = (() => {
+    try {
+      return (
+        GoogleAdMob.loadAppsInTossAdMob.isSupported() &&
+        GoogleAdMob.showAppsInTossAdMob.isSupported()
+      );
+    } catch {
+      return false;
+    }
+  })();
 
   const loadCleanup = useRef<(() => void) | null>(null);
 

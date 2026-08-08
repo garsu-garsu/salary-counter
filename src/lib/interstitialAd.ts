@@ -9,10 +9,16 @@ const INTERSTITIAL_AD_GROUP_ID = "ait.v2.live.cdf86e36ded348e9";
 const CAP_KEY = "salary-counter:interstitial-last";
 
 function supported(): boolean {
-  return (
-    GoogleAdMob.loadAppsInTossAdMob.isSupported() &&
-    GoogleAdMob.showAppsInTossAdMob.isSupported()
-  );
+  // isSupported 는 토스 밖에서 예외를 던져요. 감싸지 않으면 이 함수를 부른
+  // 화면이 통째로 하얗게 죽어요 (에러 경계가 없어요).
+  try {
+    return (
+      GoogleAdMob.loadAppsInTossAdMob.isSupported() &&
+      GoogleAdMob.showAppsInTossAdMob.isSupported()
+    );
+  } catch {
+    return false;
+  }
 }
 
 function todayKey(): string {
