@@ -16,7 +16,7 @@ import {
   wonPerSecond,
 } from "../lib/salary";
 import { nextHoliday } from "../lib/holidays";
-import { BannerAdSlot } from "../components/BannerAdSlot";
+import { BannerAdSlot, ImageBannerAdSlot } from "../components/BannerAdSlot";
 import { DetailStatsUnlock } from "../components/DetailStatsUnlock";
 import { earnedBand, track } from "../lib/analytics";
 
@@ -249,6 +249,12 @@ export function MainPage({ profile, onEdit }: Props) {
         <br />
         실제 급여·세금 계산 결과가 아니고, 야근·수당도 반영되지 않아요.
       </p>
+
+      {/* 이미지 강조형 배너 — 본문 스크롤의 맨 끝(면책 문구 아래).
+          아래 문구형 배너는 화면에 고정돼 있어 본문 흐름과 겹치지 않아요. */}
+      <div style={{ marginTop: 24 }}>
+        <ImageBannerAdSlot phase={status.phase} />
+      </div>
 
       {/* 배너는 본문 안에 흘려보내지 않고 화면 하단에 고정해요 — 한 화면에 배너는 하나입니다. */}
       <div

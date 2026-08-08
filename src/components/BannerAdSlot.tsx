@@ -9,6 +9,9 @@ import { track } from "../lib/analytics";
  */
 const BANNER_AD_GROUP_ID = "ait.v2.live.85e2b94e77ce480f";
 
+/** 이미지 강조(피드형) 배너 광고그룹 ID — 본문 맨 아래용 */
+const IMAGE_BANNER_AD_GROUP_ID = "ait.v2.live.4bc353ceebd441e2";
+
 type InitState = "idle" | "pending" | "ready" | "failed";
 
 // SDK 초기화는 앱 전체에서 한 번만 수행해요. (여러 배너가 생겨도 안전하게 공유)
@@ -53,7 +56,17 @@ const REFRESH_MS = 30_000;
  * - 토스 밖(웹 브라우저)에서는 isSupported가 false라 아무것도 렌더하지 않아요.
  * - 채울 광고가 없거나(noFill) 렌더 실패 시에도 영역을 접어서 빈 공간이 남지 않게 해요.
  */
-export function BannerAdSlot({ phase }: { phase: DayPhase }) {
+export function BannerAdSlot({
+  phase,
+  adGroupId = BANNER_AD_GROUP_ID,
+  height,
+}: {
+  phase: DayPhase;
+  /** 비우면 문구 강조형(하단 고정) 지면을 써요. */
+  adGroupId?: string;
+  /** 자리 높이(px). 이미지형은 200. 높이 0 이면 광고가 안 붙어요. */
+  height?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   // 이 값이 바뀔 때마다 아래 effect 가 다시 돌면서 배너를 새로 붙여요.
@@ -86,7 +99,7 @@ export function BannerAdSlot({ phase }: { phase: DayPhase }) {
         return;
       }
       try {
-        attached = TossAds.attachBanner(BANNER_AD_GROUP_ID, ref.current, {
+        attached = TossAds.attachBanner(adGroupId, ref.current, {
           theme: "auto",
           tone: "blackAndWhite",
           variant: "card",
@@ -141,7 +154,17 @@ export function BannerAdSlot({ phase }: { phase: DayPhase }) {
   return (
     <div
       ref={ref}
-      style={{ width: "100%", height: visible ? undefined : 0, overflow: "hidden" }}
+      style={{ width: "100%", height: visible ? height : 0, overflow: "hidden" }}
     />
+  );
+}
+
+/**
+ * 이미지 강조형 배너 — 본문 스크롤 맨 아래에 붙여요.
+ * 하단 고정 배너는 창에 붙어 있고, 이건 끝까지 내려야 보여요.
+ */
+export function ImageBannerAdSlot({ phase }: { phase: DayPhase }) {
+  return (
+    <BannerAdSlot phase={phase} adGroupId={IMAGE_BANNER_AD_GROUP_ID} height={200} />
   );
 }
