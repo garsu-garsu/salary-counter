@@ -56,7 +56,7 @@ export function IntroPage({ onStart }: Props) {
     <div style={{ padding: "0 0 32px" }}>
         {/* 앱 이름은 토스 상단 바가 이미 보여줘요 — 여기서 또 쓰면 헤더가 겹쳐 보여요. */}
       <Top
-        title={<Top.TitleParagraph size={26}>오늘 번 돈 세어보기</Top.TitleParagraph>}
+        title={<Top.TitleParagraph size={28}>오늘 번 돈 세어보기</Top.TitleParagraph>}
         subtitleBottom={
           <Top.SubtitleParagraph size={15}>
             출근하고 지금까지 번 돈, 실시간으로 세어드려요
