@@ -60,12 +60,18 @@ export function BannerAdSlot({
   phase,
   adGroupId = BANNER_AD_GROUP_ID,
   height,
+  grow,
 }: {
   phase: DayPhase;
   /** 비우면 문구 강조형(하단 고정) 지면을 써요. */
   adGroupId?: string;
   /** 자리 높이(px). 이미지형은 200. 높이 0 이면 광고가 안 붙어요. */
   height?: number;
+  /**
+   * 소재가 height 보다 크면 그만큼 늘어나게 해요.
+   * 하단 고정 배너에는 쓰면 안 돼요 — 위로 자라서 본문을 덮어요.
+   */
+  grow?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
@@ -151,10 +157,16 @@ export function BannerAdSlot({
 
   // no-fill 이어도 컨테이너는 남겨둬요. 아예 지워버리면 다음 갱신 때 붙일 자리가
   // 없어져서 배너가 영영 돌아오지 않아요.
+  // SDK 가 소재 크기를 알려주지 않아서, 늘어나도 되는 자리는 minHeight 로 둬요.
+  // height 로 고정하면 소재가 그보다 클 때 아래가 잘려요.
   return (
     <div
       ref={ref}
-      style={{ width: "100%", height: visible ? height : 0, overflow: "hidden" }}
+      style={
+        grow
+          ? { width: "100%", minHeight: visible ? height : 0, overflow: "hidden" }
+          : { width: "100%", height: visible ? height : 0, overflow: "hidden" }
+      }
     />
   );
 }
@@ -165,6 +177,6 @@ export function BannerAdSlot({
  */
 export function ImageBannerAdSlot({ phase }: { phase: DayPhase }) {
   return (
-    <BannerAdSlot phase={phase} adGroupId={IMAGE_BANNER_AD_GROUP_ID} height={200} />
+    <BannerAdSlot phase={phase} adGroupId={IMAGE_BANNER_AD_GROUP_ID} height={200} grow />
   );
 }
