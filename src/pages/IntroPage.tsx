@@ -10,6 +10,7 @@ import {
   wonPerSecond,
   workSecondsPerDay,
 } from "../lib/salary";
+import { track } from "../lib/analytics";
 
 interface Props {
   onStart: () => void;
@@ -37,6 +38,11 @@ const POINTS = [
  */
 export function IntroPage({ onStart }: Props) {
   const [now, setNow] = useState(() => new Date());
+
+  // 화면 진입 1회 로깅
+  useEffect(() => {
+    track.introView();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);

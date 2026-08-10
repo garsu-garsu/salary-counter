@@ -1,6 +1,7 @@
 import { Analytics } from "@apps-in-toss/web-framework";
 import type { DayPhase } from "./salary";
 import type { Profile } from "./types";
+import type { NotifyGroup } from "./notify";
 
 /**
  * 앱인토스 콘솔 "분석 > 이벤트"용 로깅 래퍼.
@@ -55,6 +56,11 @@ export const track = {
         hour: new Date().getHours(),
       }),
     );
+  },
+
+  /** 첫 실행 소개 화면 노출 */
+  introView() {
+    safe(() => Analytics.screen({ log_name: "intro_view" }));
   },
 
   /** 메인 카운터 화면 노출 */
@@ -148,5 +154,10 @@ export const track = {
   /** 자세한 통계 시트 열림 */
   detailStatsView(viaAd: boolean) {
     safe(() => Analytics.screen({ log_name: "detail_stats_view", via_ad: viaAd }));
+  },
+
+  /** 알림 동의 결과 */
+  notifyConsent(result: string, group: NotifyGroup) {
+    safe(() => Analytics.click({ log_name: "notify_consent", result, group }));
   },
 };

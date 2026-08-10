@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, useToast } from "@toss/tds-mobile";
 import { adaptive } from "@toss/tds-colors";
 import type { Profile } from "../lib/types";
+import { track } from "../lib/analytics";
 import {
   AM_NOTIFY_SLOTS,
   PM_NOTIFY_SLOTS,
@@ -39,6 +40,7 @@ export function NotifyTimePicker({ profile }: { profile: Profile }) {
     setPending(code);
     try {
       const result = await requestNotify(code, group);
+      track.notifyConsent(result, group);
       if (result !== "agreementRejected") {
         if (group === "am") setAmAgreed(code);
         else setPmAgreed(code);
