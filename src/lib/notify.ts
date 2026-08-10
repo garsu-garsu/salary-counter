@@ -5,17 +5,17 @@ import { requestNotificationAgreement } from "@apps-in-toss/web-framework";
  * 코드를 바꾸면 콘솔의 발송 코드도 같이 바꿔야 알림 동의 화면이 떠요.
  */
 export const AM_NOTIFY_SLOTS = [
-  { code: "salary-counter-am0700", label: "오전 7시", minutes: 7 * 60 },
-  { code: "salary-counter-am0730", label: "오전 7시 30분", minutes: 7 * 60 + 30 },
-  { code: "salary-counter-am0800", label: "오전 8시", minutes: 8 * 60 },
-  { code: "salary-counter-am0830", label: "오전 8시 30분", minutes: 8 * 60 + 30 },
-  { code: "salary-counter-am0900", label: "오전 9시", minutes: 9 * 60 },
+  { code: "salary-counter-am0700-p", label: "오전 7시", minutes: 7 * 60 },
+  { code: "salary-counter-am0730-p", label: "오전 7시 30분", minutes: 7 * 60 + 30 },
+  { code: "salary-counter-am0800-p", label: "오전 8시", minutes: 8 * 60 },
+  { code: "salary-counter-am0830-p", label: "오전 8시 30분", minutes: 8 * 60 + 30 },
+  { code: "salary-counter-am0900-p", label: "오전 9시", minutes: 9 * 60 },
 ] as const;
 
 export const PM_NOTIFY_SLOTS = [
-  { code: "salary-counter-pm1300", label: "오후 1시", minutes: 13 * 60 },
-  { code: "salary-counter-pm1330", label: "오후 1시 30분", minutes: 13 * 60 + 30 },
-  { code: "salary-counter-pm1400", label: "오후 2시", minutes: 14 * 60 },
+  { code: "salary-counter-pm1300-p", label: "오후 1시", minutes: 13 * 60 },
+  { code: "salary-counter-pm1330-p", label: "오후 1시 30분", minutes: 13 * 60 + 30 },
+  { code: "salary-counter-pm1400-p", label: "오후 2시", minutes: 14 * 60 },
 ] as const;
 
 export type AmNotifySlotCode = (typeof AM_NOTIFY_SLOTS)[number]["code"];
